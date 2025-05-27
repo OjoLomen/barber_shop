@@ -31,9 +31,7 @@ const SLOT_DURATION_MINUTES = 45;
 
 // Helper Functions
 const formatDate = (date: Date): string => {
-  const offset = date.getTimezoneOffset();
-  const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
-  return adjustedDate.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0];
 };
 
 const formatTime = (date: Date): string => {
@@ -79,16 +77,15 @@ const generateTimeSlots = (date: Date): string[] => {
   return slots;
 };
 
-
 // Components
-const Header: React.FC<{ currentPage: Page; onNavigate: (page: Page) => void; onAdminAccess: () => void; isAdmin: boolean }> =
-  ({ currentPage, onNavigate, onAdminAccess, isAdmin }) => {
+const Header: React.FC<{ currentPage: Page; onNavigate: (page: Page) => void }> =
+  ({ currentPage, onNavigate }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
       <header className="header">
         <div className="header-content">
-          <a href="#\" className="logo\" onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Bane's Fades</a>
+          <a href="#\" className="logo" onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Bane's Fades</a>
           <button className="mobile-menu-button" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu" aria-expanded={isMobileMenuOpen}>
             ☰
           </button>
@@ -175,7 +172,7 @@ const Lightbox: React.FC<{ image: GalleryImage | null; onClose: () => void }> = 
   if (!image) return null;
 
   return (
-    <div className="lightbox-overlay\" onClick={onClose} role="dialog" aria-modal="true" aria-label="Image Lightbox">
+    <div className="lightbox-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Image Lightbox">
       <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
         <button className="lightbox-close-button" onClick={onClose} aria-label="Close lightbox">&times;</button>
         <img src={image.src} alt={image.alt} className="lightbox-image" />
@@ -238,7 +235,6 @@ const GalleryPage: React.FC<{ images: GalleryImage[] }> = ({ images }) => {
     </div>
   );
 };
-
 
 const Calendar: React.FC<{
   selectedDate: Date;
@@ -374,7 +370,6 @@ const TimeSlotPicker: React.FC<{
     </div>
   );
 };
-
 
 const BookingForm: React.FC<{
   selectedDate: Date;
@@ -579,7 +574,8 @@ const AdminBookingsView: React.FC<{
             <select
                 id="bookingSort"
                 value={sortOrder}
-                onChange={(e) => onSetSortOrder(e.target.value as 'asc' | 'desc')}
+                onChange={(e) => onSetSortOrder(e.target.value as 'a
+sc' | 'desc')}
                 className="admin-select"
             >
                 <option value="asc">Soonest First</option>
@@ -837,7 +833,6 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({ booking, allBooking
     );
 };
 
-
 interface AdminPageProps {
   bookings: Booking[];
   deleteBooking: (id: string) => void;
@@ -998,10 +993,16 @@ const AdminPage: React.FC<AdminPageProps> = ({
   );
 };
 
-
 // Main App Component
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
+  const [currentPage, setCurrentPage] = useState<Page>(() => {
+    const path = window.location.pathname;
+    if (path === '/admin') return 'admin';
+    if (path === '/gallery') return 'gallery';
+    if (path === '/booking') return 'booking';
+    return 'home';
+  });
+
   const [bookings, setBookings] = useState<Booking[]>(() => {
     try {
       const savedBookings = localStorage.getItem('baneFadesBookings');
@@ -1011,6 +1012,7 @@ const App: React.FC = () => {
       return [];
     }
   });
+
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>(() => {
     try {
       const savedImages = localStorage.getItem('baneFadesGallery');
@@ -1032,11 +1034,11 @@ const App: React.FC = () => {
         ];
     }
   });
+
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
     const adminStatus = sessionStorage.getItem('baneFadesAdmin');
     return adminStatus === 'true';
   });
-
 
   useEffect(() => {
     localStorage.setItem('baneFadesBookings', JSON.stringify(bookings));
@@ -1052,8 +1054,28 @@ const App: React.FC = () => {
 
   const navigate = (page: Page) => {
     setCurrentPage(page);
-    window.scrollTo(0,0); 
+    window.scrollTo(0,0);
+    // Update URL without page reload
+    if (page === 'home') {
+      window.history.pushState({}, '', '/');
+    } else {
+      window.history.pushState({}, '', `/${page}`);
+    }
   };
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === '/admin') setCurrentPage('admin');
+      else if (path === '/gallery') setCurrentPage('gallery');
+      else if (path === '/booking') setCurrentPage('booking');
+      else setCurrentPage('home');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const addBooking = (booking: Booking) => {
     setBookings(prev => [...prev, booking]);
@@ -1096,7 +1118,6 @@ const App: React.FC = () => {
     setCurrentPage('admin');
   };
 
-
   const renderPage = () => {
     if (currentPage === 'admin') {
         return <AdminPage 
@@ -1125,13 +1146,13 @@ const App: React.FC = () => {
 
   return (
     <div className={`app-container ${currentPage === 'admin' && isAdmin ? 'admin-view-active' : ''}`}>
-      { !(currentPage === 'admin' && isAdmin) && 
-        <Header currentPage={currentPage} onNavigate={navigate} onAdminAccess={handleAdminAccess} isAdmin={isAdmin} />
+      {!(currentPage === 'admin' && isAdmin) && 
+        <Header currentPage={currentPage} onNavigate={navigate} />
       }
       <main className={`main-content ${currentPage === 'admin' && isAdmin ? 'admin-main-full-width' : ''}`}>
         {renderPage()}
       </main>
-      { !(currentPage === 'admin' && isAdmin) && 
+      {!(currentPage === 'admin' && isAdmin) && 
         <Footer />
       }
     </div>
