@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 
@@ -31,9 +32,7 @@ const SLOT_DURATION_MINUTES = 45;
 
 // Helper Functions
 const formatDate = (date: Date): string => {
-  const offset = date.getTimezoneOffset();
-  const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
-  return adjustedDate.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0];
 };
 
 const formatTime = (date: Date): string => {
@@ -88,7 +87,7 @@ const Header: React.FC<{ currentPage: Page; onNavigate: (page: Page) => void; on
     return (
       <header className="header">
         <div className="header-content">
-          <a href="#\" className="logo\" onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Bane's Fades</a>
+          <a href="#" className="logo" onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Bane's Fades</a>
           <button className="mobile-menu-button" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu" aria-expanded={isMobileMenuOpen}>
             ☰
           </button>
@@ -97,6 +96,15 @@ const Header: React.FC<{ currentPage: Page; onNavigate: (page: Page) => void; on
               <li><a href="#" className={currentPage === 'home' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Home</a></li>
               <li><a href="#" className={currentPage === 'gallery' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('gallery')}}>Gallery</a></li>
               <li><a href="#" className={currentPage === 'booking' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('booking')}}>Book Now</a></li>
+              <li>
+                <button
+                  onClick={onAdminAccess}
+                  className={`nav-button ${currentPage === 'admin' ? 'active' : ''}`}
+                  aria-current={currentPage === 'admin'}
+                >
+                  {isAdmin ? 'Admin Panel' : 'Admin Access'}
+                </button>
+              </li>
             </ul>
           </nav>
           {isMobileMenuOpen && (
@@ -105,6 +113,15 @@ const Header: React.FC<{ currentPage: Page; onNavigate: (page: Page) => void; on
                 <li><a href="#" className={currentPage === 'home' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('home'); setIsMobileMenuOpen(false);}}>Home</a></li>
                 <li><a href="#" className={currentPage === 'gallery' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('gallery'); setIsMobileMenuOpen(false);}}>Gallery</a></li>
                 <li><a href="#" className={currentPage === 'booking' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('booking'); setIsMobileMenuOpen(false);}}>Book Now</a></li>
+                <li>
+                  <button
+                    onClick={() => { onAdminAccess(); setIsMobileMenuOpen(false); }}
+                    className={`nav-button ${currentPage === 'admin' ? 'active' : ''}`}
+                    aria-current={currentPage === 'admin'}
+                  >
+                    {isAdmin ? 'Admin Panel' : 'Admin Access'}
+                  </button>
+                </li>
               </ul>
             </nav>
           )}
@@ -128,45 +145,9 @@ const Footer: React.FC = () => (
 const HomePage: React.FC<{ onNavigate: (page: Page) => void }> = ({ onNavigate }) => (
   <div className="home-page">
     <section className="hero">
-      <div className="hero-content">
-        <h1>Premium Barbering Experience</h1>
-        <div className="hero-services">
-          <div className="service-card">
-            <h3>Classic Cuts</h3>
-            <p>Traditional barbering with modern style</p>
-            <span className="price">from $30</span>
-          </div>
-          <div className="service-card">
-            <h3>Beard Grooming</h3>
-            <p>Expert beard shaping and maintenance</p>
-            <span className="price">from $25</span>
-          </div>
-          <div className="service-card">
-            <h3>Hot Towel Shave</h3>
-            <p>Luxurious traditional straight razor shave</p>
-            <span className="price">from $35</span>
-          </div>
-        </div>
-        <button onClick={() => onNavigate('booking')} className="cta-button">Book Your Experience</button>
-      </div>
-    </section>
-    <section className="about-section">
-      <h2>Crafting Style Since 2015</h2>
-      <p>At Bane's Fades, we blend traditional barbering techniques with contemporary styles. Our experienced barbers are dedicated to giving you the perfect cut, every time.</p>
-      <div className="features">
-        <div className="feature">
-          <h4>Expert Barbers</h4>
-          <p>Skilled professionals with years of experience</p>
-        </div>
-        <div className="feature">
-          <h4>Premium Products</h4>
-          <p>Using only the finest grooming products</p>
-        </div>
-        <div className="feature">
-          <h4>Clean Environment</h4>
-          <p>Sanitized equipment and comfortable atmosphere</p>
-        </div>
-      </div>
+      <h1>Welcome to Bane's Fades</h1>
+      <p>Experience the art of barbering. Precision cuts, classic shaves, and modern styles, all in a relaxed atmosphere.</p>
+      <button onClick={() => onNavigate('booking')}>Book Your Appointment</button>
     </section>
   </div>
 );
@@ -175,7 +156,7 @@ const Lightbox: React.FC<{ image: GalleryImage | null; onClose: () => void }> = 
   if (!image) return null;
 
   return (
-    <div className="lightbox-overlay\" onClick={onClose} role="dialog" aria-modal="true" aria-label="Image Lightbox">
+    <div className="lightbox-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Image Lightbox">
       <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
         <button className="lightbox-close-button" onClick={onClose} aria-label="Close lightbox">&times;</button>
         <img src={image.src} alt={image.alt} className="lightbox-image" />
@@ -868,6 +849,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
   const [bookingToEdit, setBookingToEdit] = useState<Booking | null>(null);
   const [adminActionMessage, setAdminActionMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
+
   const handleLoginAttempt = () => {
     if (!adminEmailInput || !adminPasswordInput) {
         setLoginError("Please enter both email and password.");
@@ -906,9 +888,6 @@ const AdminPage: React.FC<AdminPageProps> = ({
     setTimeout(() => setAdminActionMessage(null), 3000);
   };
 
-  const handleGoBack = () => {
-    window.location.href = '/';
-  };
 
   if (!isAdmin) {
     return (
@@ -938,7 +917,6 @@ const AdminPage: React.FC<AdminPageProps> = ({
             />
           </div>
           <button onClick={handleLoginAttempt} className="admin-button-primary login-button">Login</button>
-          <button onClick={handleGoBack} className="admin-button-secondary back-button">Go Back</button>
           {loginError && <p id="loginError" className="message error" role="alert">{loginError}</p>}
         </div>
       </div>
@@ -955,9 +933,6 @@ const AdminPage: React.FC<AdminPageProps> = ({
     <div className="admin-panel-container"> 
       <AdminSidebar activeView={adminView} onSetView={setAdminView} />
       <main className="admin-main-content">
-        <button onClick={handleGoBack} className="admin-button-secondary back-button">
-          ← Back to Website
-        </button>
         {adminActionMessage && (
             <div className={`message ${adminActionMessage.type} admin-action-message`} role="alert">
                 {adminActionMessage.text}
