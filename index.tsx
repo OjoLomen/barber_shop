@@ -88,7 +88,7 @@ const Header: React.FC<{ currentPage: Page; onNavigate: (page: Page) => void; on
     return (
       <header className="header">
         <div className="header-content">
-          <a href="#" className="logo" onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Bane's Fades</a>
+          <a href="#\" className="logo\" onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Bane's Fades</a>
           <button className="mobile-menu-button" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu" aria-expanded={isMobileMenuOpen}>
             ☰
           </button>
@@ -157,7 +157,7 @@ const Lightbox: React.FC<{ image: GalleryImage | null; onClose: () => void }> = 
   if (!image) return null;
 
   return (
-    <div className="lightbox-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Image Lightbox">
+    <div className="lightbox-overlay\" onClick={onClose} role="dialog" aria-modal="true" aria-label="Image Lightbox">
       <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
         <button className="lightbox-close-button" onClick={onClose} aria-label="Close lightbox">&times;</button>
         <img src={image.src} alt={image.alt} className="lightbox-image" />
