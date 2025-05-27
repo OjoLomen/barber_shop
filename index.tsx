@@ -78,36 +78,42 @@ const generateTimeSlots = (date: Date): string[] => {
 };
 
 // Components
-const Header: React.FC<{ currentPage: Page; onNavigate: (page: Page) => void }> =
-  ({ currentPage, onNavigate }) => {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const Header: React.FC<{ currentPage: Page; onNavigate: (page: Page) => void }> = ({ currentPage, onNavigate }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    return (
-      <header className="header">
-        <div className="header-content">
-          <a href="#\" className=\"logo" onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Bane's Fades</a>
-          <button className="mobile-menu-button" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu" aria-expanded={isMobileMenuOpen}>
-            ☰
-          </button>
-          <nav className={`nav desktop-nav ${isMobileMenuOpen ? 'hidden' : ''}`}>
+  const handleAdminClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.location.href = '/admin';
+  };
+
+  return (
+    <header className="header">
+      <div className="header-content">
+        <a href="#" className="logo" onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Bane's Fades</a>
+        <button className="mobile-menu-button" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu" aria-expanded={isMobileMenuOpen}>
+          ☰
+        </button>
+        <nav className={`nav desktop-nav ${isMobileMenuOpen ? 'hidden' : ''}`}>
+          <ul>
+            <li><a href="#" className={currentPage === 'home' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Home</a></li>
+            <li><a href="#" className={currentPage === 'gallery' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('gallery')}}>Gallery</a></li>
+            <li><a href="#" className={currentPage === 'booking' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('booking')}}>Book Now</a></li>
+            <li><a href="#" onClick={handleAdminClick}>Admin Panel</a></li>
+          </ul>
+        </nav>
+        {isMobileMenuOpen && (
+          <nav className={`nav mobile-nav ${isMobileMenuOpen ? 'is-open' : ''}`}>
             <ul>
-              <li><a href="#" className={currentPage === 'home' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('home')}}>Home</a></li>
-              <li><a href="#" className={currentPage === 'gallery' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('gallery')}}>Gallery</a></li>
-              <li><a href="#" className={currentPage === 'booking' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('booking')}}>Book Now</a></li>
+              <li><a href="#" className={currentPage === 'home' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('home'); setIsMobileMenuOpen(false);}}>Home</a></li>
+              <li><a href="#" className={currentPage === 'gallery' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('gallery'); setIsMobileMenuOpen(false);}}>Gallery</a></li>
+              <li><a href="#" className={currentPage === 'booking' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('booking'); setIsMobileMenuOpen(false);}}>Book Now</a></li>
+              <li><a href="#" onClick={(e) => {e.preventDefault(); handleAdminClick(e); setIsMobileMenuOpen(false);}}>Admin Panel</a></li>
             </ul>
           </nav>
-          {isMobileMenuOpen && (
-            <nav className={`nav mobile-nav ${isMobileMenuOpen ? 'is-open' : ''}`}>
-              <ul>
-                <li><a href="#" className={currentPage === 'home' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('home'); setIsMobileMenuOpen(false);}}>Home</a></li>
-                <li><a href="#" className={currentPage === 'gallery' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('gallery'); setIsMobileMenuOpen(false);}}>Gallery</a></li>
-                <li><a href="#" className={currentPage === 'booking' ? 'active' : ''} onClick={(e) => {e.preventDefault(); onNavigate('booking'); setIsMobileMenuOpen(false);}}>Book Now</a></li>
-              </ul>
-            </nav>
-          )}
-        </div>
-      </header>
-    );
+        )}
+      </div>
+    </header>
+  );
 };
 
 const Footer: React.FC = () => (
@@ -574,8 +580,7 @@ const AdminBookingsView: React.FC<{
             <select
                 id="bookingSort"
                 value={sortOrder}
-                onChange={(e) => onSetSortOrder(e.target.value as 'a
-sc' | \'desc')}
+                onChange={(e) => onSetSortOrder(e.target.value as 'asc' | 'desc')}
                 className="admin-select"
             >
                 <option value="asc">Soonest First</option>
