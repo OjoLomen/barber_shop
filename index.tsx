@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 
@@ -32,7 +31,10 @@ const SLOT_DURATION_MINUTES = 45;
 
 // Helper Functions
 const formatDate = (date: Date): string => {
-  return date.toISOString().split('T')[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 const formatTime = (date: Date): string => {
@@ -77,7 +79,6 @@ const generateTimeSlots = (date: Date): string[] => {
   }
   return slots;
 };
-
 
 // Components
 const Header: React.FC<{ currentPage: Page; onNavigate: (page: Page) => void; onAdminAccess: () => void; isAdmin: boolean }> =
@@ -220,7 +221,6 @@ const GalleryPage: React.FC<{ images: GalleryImage[] }> = ({ images }) => {
   );
 };
 
-
 const Calendar: React.FC<{
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
@@ -356,7 +356,6 @@ const TimeSlotPicker: React.FC<{
   );
 };
 
-
 const BookingForm: React.FC<{
   selectedDate: Date;
   selectedTime: string;
@@ -488,10 +487,14 @@ const BookingPage: React.FC<{
 const AdminSidebar: React.FC<{
     activeView: 'dashboard' | 'bookings' | 'gallery';
     onSetView: (view: 'dashboard' | 'bookings' | 'gallery') => void;
-}> = ({ activeView, onSetView }) => (
+    onGoBack: () => void;
+}> = ({ activeView, onSetView, onGoBack }) => (
     <aside className="admin-sidebar">
         <div className="admin-sidebar-header">
             <h3>Bane's Admin</h3>
+            <button onClick={onGoBack} className="admin-button-secondary" style={{marginTop: '10px', width: '100%'}}>
+                Go Back to Site
+            </button>
         </div>
         <nav className="admin-sidebar-nav">
             <ul>
@@ -551,14 +554,15 @@ const AdminBookingsView: React.FC<{
     sortOrder: 'asc' | 'desc';
     onSetSortOrder: (order: 'asc' | 'desc') => void;
     onDeleteBooking: (id: string) => void;
-    onEditBooking: (booking: Booking) => void; // Callback to open edit modal
+    onEditBooking: (booking: Booking) => void;
 }> = ({ bookings, sortOrder, onSetSortOrder, onDeleteBooking, onEditBooking }) => (
     <section className="admin-view-content admin-bookings-view">
         <h3 className="admin-view-header">Manage Bookings</h3>
         <div className="admin-bookings-controls">
             <label htmlFor="bookingSort" className="admin-label">Sort by Date: </label>
             <select
-                id="bookingSort"
+                id="book
+ingSort"
                 value={sortOrder}
                 onChange={(e) => onSetSortOrder(e.target.value as 'asc' | 'desc')}
                 className="admin-select"
@@ -818,7 +822,6 @@ const EditBookingModal: React.FC<EditBookingModalProps> = ({ booking, allBooking
     );
 };
 
-
 interface AdminPageProps {
   bookings: Booking[];
   deleteBooking: (id: string) => void;
@@ -828,6 +831,7 @@ interface AdminPageProps {
   deleteGalleryImage: (id: string) => void;
   isAdmin: boolean;
   attemptLogin: (email: string, pass: string) => void;
+  onGoBack: () => void;
 }
 
 const AdminPage: React.FC<AdminPageProps> = ({
@@ -838,7 +842,8 @@ const AdminPage: React.FC<AdminPageProps> = ({
   addGalleryImage,
   deleteGalleryImage,
   isAdmin,
-  attemptLogin
+  attemptLogin,
+  onGoBack
 }) => {
   const [adminEmailInput, setAdminEmailInput] = useState('');
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
@@ -848,7 +853,6 @@ const AdminPage: React.FC<AdminPageProps> = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [bookingToEdit, setBookingToEdit] = useState<Booking | null>(null);
   const [adminActionMessage, setAdminActionMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
-
 
   const handleLoginAttempt = () => {
     if (!adminEmailInput || !adminPasswordInput) {
@@ -887,7 +891,6 @@ const AdminPage: React.FC<AdminPageProps> = ({
     setAdminActionMessage({type: 'success', text: 'Booking updated successfully.'});
     setTimeout(() => setAdminActionMessage(null), 3000);
   };
-
 
   if (!isAdmin) {
     return (
@@ -931,7 +934,7 @@ const AdminPage: React.FC<AdminPageProps> = ({
 
   return (
     <div className="admin-panel-container"> 
-      <AdminSidebar activeView={adminView} onSetView={setAdminView} />
+      <AdminSidebar activeView={adminView} onSetView={setAdminView} onGoBack={onGoBack} />
       <main className="admin-main-content">
         {adminActionMessage && (
             <div className={`message ${adminActionMessage.type} admin-action-message`} role="alert">
@@ -973,7 +976,6 @@ const AdminPage: React.FC<AdminPageProps> = ({
   );
 };
 
-
 // Main App Component
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -1011,7 +1013,6 @@ const App: React.FC = () => {
     const adminStatus = sessionStorage.getItem('baneFadesAdmin');
     return adminStatus === 'true';
   });
-
 
   useEffect(() => {
     localStorage.setItem('baneFadesBookings', JSON.stringify(bookings));
@@ -1071,6 +1072,9 @@ const App: React.FC = () => {
     setCurrentPage('admin');
   };
 
+  const handleGoBack = () => {
+    setCurrentPage('home');
+  };
 
   const renderPage = () => {
     if (currentPage === 'admin') {
@@ -1082,7 +1086,8 @@ const App: React.FC = () => {
                   addGalleryImage={addGalleryImage}
                   deleteGalleryImage={deleteGalleryImage}
                   isAdmin={isAdmin}
-                  attemptLogin={attemptAdminLogin} 
+                  attemptLogin={attemptAdminLogin}
+                  onGoBack={handleGoBack}
                />;
     }
 
